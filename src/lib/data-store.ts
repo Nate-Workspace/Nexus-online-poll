@@ -43,3 +43,19 @@ export const addPoll = (poll: Poll) => {
   polls.unshift(poll)
 }
 
+export const updatePoll = (pollId: string, updatedPoll: Poll) => {
+  const index = polls.findIndex(p => p.id === pollId)
+  if (index !== -1) {
+    polls[index] = updatedPoll
+  }
+}
+
+export const getPollById = (id: string) => {
+  return polls.find(p => p.id === id)
+}
+
+export const getAllPolls = () => {
+  return polls.sort((a, b) => 
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
+}

@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { CreatePollData } from '@/lib/types'
-import { addPoll } from '@/lib/data-store'
+import { polls, addPoll, getAllPolls } from '@/lib/data-store'
+
+export async function GET() {
+  try {
+    const sortedPolls = getAllPolls()
+    return NextResponse.json(sortedPolls)
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to fetch polls' },
+      { status: 500 }
+    )
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
