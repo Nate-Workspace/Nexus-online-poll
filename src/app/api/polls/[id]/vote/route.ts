@@ -3,9 +3,8 @@ import { getPollById, updatePoll } from '@/lib/data-store'
 
 export async function POST(
   request: NextRequest,
-  props: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
-  const {params} = await props;
   const {id} = await params;
   try {
     const { optionIds }: { optionIds: string[] } = await request.json()
