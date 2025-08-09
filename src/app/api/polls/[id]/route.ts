@@ -4,7 +4,7 @@ import { Poll } from '@/lib/types'
 
 export async function GET(
   request: NextRequest,
-  props: Promise<{ params: { id: string }}>
+  props: { params: { id: string }}
 ) {
   const {params} = await props;
   const {id} = await params;
