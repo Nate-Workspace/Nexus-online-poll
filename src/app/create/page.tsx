@@ -123,7 +123,6 @@ export default function CreatePollPage() {
       toast.success("Poll created successfully!")
       console.log("Poll created: ", result)
 
-      // Redirect to the newly created poll
       router.push(`/poll/${result.id}`)
     } catch (error) {
       toast.error("Failed to create poll. Please try again.")
