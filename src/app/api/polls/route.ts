@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { CreatePollData } from '@/lib/types'
 import { polls, addPoll, getAllPolls } from '@/lib/data-store'
 
-export { polls }
-
 export async function GET() {
   try {
     const sortedPolls = getAllPolls()
