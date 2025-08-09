@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { CreatePollData } from '@/lib/types'
 import { polls, addPoll, getAllPolls } from '@/lib/data-store'
 
+export { polls }
+
 export async function GET() {
   try {
     const sortedPolls = getAllPolls()
@@ -18,7 +20,6 @@ export async function POST(request: NextRequest) {
   try {
     const data: CreatePollData = await request.json()
     
- 
     if (!data.title || !data.description || !data.options || !data.category) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -32,7 +33,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
 
     const newPoll = {
       id: Date.now().toString(),
