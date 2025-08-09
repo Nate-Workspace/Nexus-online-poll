@@ -3,8 +3,10 @@ import { getPollById, updatePoll } from '@/lib/data-store'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: { id: string } }
 ) {
+  const {params} = await props;
+  const {id} = await params;
   try {
     const { optionIds }: { optionIds: string[] } = await request.json()
     
@@ -15,7 +17,7 @@ export async function POST(
       )
     }
     
-    const poll = getPollById(params.id)
+    const poll = getPollById(id)
     
     if (!poll) {
       return NextResponse.json(
@@ -63,7 +65,7 @@ export async function POST(
     // Recalculate total votes
     updatedPoll.totalVotes = updatedPoll.options.reduce((sum, option) => sum + option.votes, 0)
     
-    updatePoll(params.id, updatedPoll)
+    updatePoll(id, updatedPoll)
     
     return NextResponse.json(updatedPoll)
   } catch (error) {

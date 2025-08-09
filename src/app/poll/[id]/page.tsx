@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,16 +9,17 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Users, Calendar, Share2 } from "lucide-react"
+import { ArrowLeft, Users, Calendar, Share2, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import type { AppDispatch, RootState } from "@/lib/store"
-import { fetchPollById, submitVote } from "@/lib/features/polls/pollsSlice"
+import { fetchPollById, submitVote, clearError } from "@/lib/features/polls/pollsSlice"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { PollResults } from "@/components/poll-results"
 import { toast } from "sonner"
 
 export default function PollPage() {
   const params = useParams()
+  const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
   const { currentPoll, loading, error } = useSelector((state: RootState) => state.polls)
 
@@ -32,21 +33,22 @@ export default function PollPage() {
     if (pollId) {
       dispatch(fetchPollById(pollId))
 
+      // Check if user has already voted (using localStorage for demo)
       const votedPolls = JSON.parse(localStorage.getItem("votedPolls") || "[]")
       setHasVoted(votedPolls.includes(pollId))
     }
   }, [dispatch, pollId])
 
-
+  // Real-time updates every 5 seconds, but only if poll exists and no error
   useEffect(() => {
-    if (!pollId || hasVoted || !currentPoll) return
+    if (!pollId || hasVoted || !currentPoll || error) return
 
     const interval = setInterval(() => {
       dispatch(fetchPollById(pollId))
     }, 5000)
 
     return () => clearInterval(interval)
-  }, [dispatch, pollId, hasVoted, currentPoll])
+  }, [dispatch, pollId, hasVoted, currentPoll, error])
 
   const handleOptionChange = (optionId: string, checked: boolean) => {
     if (!currentPoll) return
@@ -71,6 +73,7 @@ export default function PollPage() {
         }),
       ).unwrap()
 
+      // Mark as voted in localStorage
       const votedPolls = JSON.parse(localStorage.getItem("votedPolls") || "[]")
       votedPolls.push(pollId)
       localStorage.setItem("votedPolls", JSON.stringify(votedPolls))
@@ -95,6 +98,7 @@ export default function PollPage() {
           url: url,
         })
       } catch (error) {
+        // Fallback to clipboard
         navigator.clipboard.writeText(url)
         toast.success("Poll link copied to clipboard!")
       }
@@ -102,6 +106,11 @@ export default function PollPage() {
       navigator.clipboard.writeText(url)
       toast.success("Poll link copied to clipboard!")
     }
+  }
+
+  const handleRetry = () => {
+    dispatch(clearError())
+    dispatch(fetchPollById(pollId))
   }
 
   if (loading && !currentPoll) {
@@ -114,15 +123,21 @@ export default function PollPage() {
     )
   }
 
-  if (error) {
+  if (error && !currentPoll) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card className="border-destructive">
           <CardContent className="pt-6 text-center">
             <p className="text-destructive mb-4">Error: {error}</p>
-            <Link href="/">
-              <Button>Back to Home</Button>
-            </Link>
+            <div className="flex gap-2 justify-center">
+              <Button onClick={handleRetry} variant="outline" className="gap-2 bg-transparent">
+                <RefreshCw className="h-4 w-4" />
+                Retry
+              </Button>
+              <Link href="/">
+                <Button>Back to Home</Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -151,9 +166,23 @@ export default function PollPage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Home
         </Link>
+
+        {/* Show error banner if there's an error but we still have poll data */}
+        {error && currentPoll && (
+          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-destructive">Connection issue: {error}</p>
+              <Button onClick={handleRetry} variant="outline" size="sm" className="gap-2 bg-transparent">
+                <RefreshCw className="h-4 w-4" />
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Poll Details and Voting */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
@@ -246,6 +275,7 @@ export default function PollPage() {
           </Card>
         </div>
 
+        {/* Results */}
         <div>
           <PollResults poll={currentPoll} showTitle={false} />
         </div>

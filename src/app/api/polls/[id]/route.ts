@@ -4,11 +4,13 @@ import { Poll } from '@/lib/types'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: Promise<{ params: { id: string }}>
 ) {
+  const {params} = await props;
+  const {id} = await params;
   try {
-    console.log(`Fetching poll with ID: ${params.id}`)
-    const poll : Poll | undefined= getPollById(params.id)
+    console.log(`Fetching poll with ID: ${id}`)
+    const poll : Poll | undefined= getPollById(id? id:'')
     
     if (!poll) {
       return NextResponse.json(
