@@ -98,7 +98,6 @@ export default function PollPage() {
           url: url,
         })
       } catch (error) {
-        // Fallback to clipboard
         navigator.clipboard.writeText(url)
         toast.success("Poll link copied to clipboard!")
       }
